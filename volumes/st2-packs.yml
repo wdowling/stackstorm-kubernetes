@@ -1,0 +1,23 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: st2-packs-efs-provision
+  namespace: stackstorm
+spec:
+  template:
+    metadata:
+      name: st2-packs-efs-provision
+    spec:
+      containers:
+      - name: st2-packs-efs-provision
+        image: busybox
+        command: [ "sh", "-c", "mkdir -p /efs/volumes/static/st2-packs && cd /efs/volumes/static && addgroup ubuntu && chown root:ubuntu st2-packs && chmod 770 st2-packs" ]
+        volumeMounts:
+          - name: "st2-packs-efs-provision"
+            mountPath: "/efs"
+      volumes:
+        - name: st2-packs-efs-provision
+          nfs:
+            server: fs-xxxxxxx.efs.xx-xxxx-x.amazonaws.com
+            path: /
+      restartPolicy: Never

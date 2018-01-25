@@ -1,0 +1,40 @@
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: st2sensorcontainer
+  namespace: stackstorm
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: st2sensorcontainer
+      annotations:
+        iam.amazonaws.com/role: arn:aws:iam::XXXXXXXXXXXXX:role/k8s-stackstorm-role
+    spec:
+      containers:
+      - name: st2sensorcontainer
+        image: stackstorm/stackstorm:latest
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: ST2_SERVICE
+          value: st2sensorcontainer
+        envFrom:
+        - configMapRef: { name: st2 }
+        - configMapRef: { name: rabbitmq }
+        - configMapRef: { name: postgres }
+        volumeMounts:
+        - name: st2-packs
+          mountPath: /opt/stackstorm/packs
+        - name: st2-virtualenvs
+          mountPath: /opt/stackstorm/virtualenvs
+      volumes:
+      - name: st2-packs
+        nfs:
+          server: fs-xxxxxxxx.efs.xx-xxxx-x.amazonaws.com
+          path: /volumes/static/st2-packs
+      - name: st2-virtualenvs
+        nfs:
+          server: fs-xxxxxxxx.efs.xx-xxxx-x.amazonaws.com
+          path: /volumes/static/st2-virtualenvs

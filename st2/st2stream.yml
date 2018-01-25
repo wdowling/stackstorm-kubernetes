@@ -1,0 +1,39 @@
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: st2stream
+  namespace: stackstorm
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: st2stream
+    spec:
+      containers:
+      - name: st2stream
+        image: stackstorm/stackstorm:latest
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: ST2_SERVICE
+          value: st2stream
+        envFrom:
+        - configMapRef: { name: st2 }
+        - configMapRef: { name: rabbitmq }
+        - configMapRef: { name: postgres }
+        ports:
+        - containerPort: 9102
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: st2stream
+  namespace: stackstorm
+spec:
+  selector:
+    app: st2stream
+  ports:
+  - protocol: TCP
+    port: 9102

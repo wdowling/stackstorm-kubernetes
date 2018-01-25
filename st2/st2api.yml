@@ -1,0 +1,53 @@
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: st2api
+  namespace: stackstorm
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: st2api
+    spec:
+      containers:
+      - name: st2api
+        image: stackstorm/stackstorm:latest
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: ST2_SERVICE
+          value: st2api
+        envFrom:
+        - configMapRef: { name: st2 }
+        - configMapRef: { name: rabbitmq }
+        - configMapRef: { name: postgres }
+        ports:
+        - containerPort: 9101
+        volumeMounts:
+        - name: st2-packs
+          mountPath: /opt/stackstorm/packs
+        - name: st2-virtualenvs
+          mountPath: /opt/stackstorm/virtualenvs
+      volumes:
+      - name: st2-packs
+        nfs:
+          server: fs-xxxxxxxx.efs.xx-xxxx-x.amazonaws.com
+          path: /volumes/static/st2-packs
+      - name: st2-virtualenvs
+        nfs:
+          server: fs-xxxxxxxx.efs.xx-xxxx-x.amazonaws.com
+          path: /volumes/static/st2-virtualenvs
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: st2api
+  namespace: stackstorm
+spec:
+  selector:
+    app: st2api
+  ports:
+  - protocol: TCP
+    port: 9101

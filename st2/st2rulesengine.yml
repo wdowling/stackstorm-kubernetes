@@ -1,0 +1,24 @@
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: st2rulesengine
+  namespace: stackstorm
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: st2rulesengine
+    spec:
+      containers:
+      - name: st2rulesengine
+        image: stackstorm/stackstorm:latest
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: ST2_SERVICE
+          value: st2rulesengine
+        envFrom:
+        - configMapRef: { name: st2 }
+        - configMapRef: { name: rabbitmq }
+        - configMapRef: { name: postgres }

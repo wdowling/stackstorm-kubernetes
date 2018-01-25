@@ -1,0 +1,51 @@
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: st2web
+  namespace: stackstorm
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: st2web
+    spec:
+      containers:
+      - name: st2web
+        image: stackstorm/stackstorm:latest
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: ST2_SERVICE
+          value: st2web
+        envFrom:
+        - configMapRef: { name: st2 }
+        - configMapRef: { name: rabbitmq }
+        - configMapRef: { name: postgres }
+        ports:
+        - containerPort: 443
+      - name: dns-resolver
+        image: janeczku/go-dnsmasq:latest
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: DNSMASQ_ENABLE_SEARCH
+          value: "1"
+        ports:
+        - containerPort: 53
+          protocol: UDP
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: st2web
+  namespace: stackstorm
+spec:
+  selector:
+    app: st2web
+  type: NodePort
+  ports:
+  - name: "https"
+    port: 443
+    targetPort: 443 
+    protocol: TCP

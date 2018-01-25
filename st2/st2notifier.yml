@@ -1,0 +1,24 @@
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: st2notifier
+  namespace: stackstorm
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: st2notifier
+    spec:
+      containers:
+      - name: st2notifier
+        image: stackstorm/stackstorm:latest
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: ST2_SERVICE
+          value: st2notifier
+        envFrom:
+        - configMapRef: { name: st2 }
+        - configMapRef: { name: rabbitmq }
+        - configMapRef: { name: postgres }
